@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Buddy - AI Voice Assistant</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    select, button {
+      margin: 10px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      background: #00aaff;
+      color: #fff;
+    }
+    #output { margin-top: 20px; font-size: 20px; }
+  </style>
+</head>
+
+<body>
+
+  <h1>My Buddy – Multilingual Voice Assistant</h1>
+
+  <!-- Language Dropdown -->
+  <select id="language">
+    <option value="en-IN">English (India)</option>
+    <option value="hi-IN">Hindi</option>
+    <option value="kn-IN">Kannada</option>
+    <option value="ta-IN">Tamil</option>
+    <option value="te-IN">Telugu</option>
+    <option value="ml-IN">Malayalam</option>
+    <option value="bn-IN">Bengali</option>
+    <option value="mr-IN">Marathi</option>
+    <option value="gu-IN">Gujarati</option>
+  </select>
+
+  <!-- Voice Dropdown -->
+  <select id="voiceSelect"></select>
+
+  <button onclick="startListening()">🎤 Start Talking</button>
+  <p id="output">Say something...</p>
+
+<script>
+  const output = document.getElementById("output");
+  const languageSelect = document.getElementById("language");
+  const voiceSelect = document.getElementById("voiceSelect");
+
+  // SPEECH RECOGNITION SETUP
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  // UPDATE LANGUAGE FOR LISTENING
+  languageSelect.onchange = () => {
+    recognition.lang = languageSelect.value;
+  };
+
+  recognition.lang = languageSelect.value;
+
+  // LOAD VOICES
+  let voices = [];
+
+  function loadVoices() {
+    voices = speechSynthesis.getVoices();
+    voiceSelect.innerHTML = "";
+    voices.forEach((v, i) => {
+      const option = document.createElement("option");
+      option.value = i;
+      option.textContent = v.name + " (" + v.lang + ")";
+      voiceSelect.appendChild(option);
+    });
+  }
+
+  speechSynthesis.onvoiceschanged = loadVoices;
+
+  // SPEAK FUNCTION
+  function speak(text) {
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.voice = voices[voiceSelect.value];
+    speechSynthesis.speak(msg);
+  }
+
+  // START LISTENING
+  function startListening() {
+    recognition.lang = languageSelect.value;
+    recognition.start();
+    output.textContent = "Listening...";
+  }
+
+  // SMART HOME CONTROL (DEMO)
+  function controlSmartDevice(command) {
+    // Real IoT API connection needed (Tuya / Alexa / Google Home)
+    if (command.includes("light on")) return "Turning on the lights.";
+    if (command.includes("light off")) return "Turning off the lights.";
+    if (command.includes("fan on")) return "Switching on the fan.";
+    if (command.includes("fan off")) return "Switching off the fan.";
+    if (command.includes("ac on")) return "Turning on the AC.";
+    if (command.includes("ac off")) return "Turning off the AC.";
+
+    return null;
+  }
+
+  // AI ANSWER TO ALL QUESTIONS (PLACEHOLDER)
+  async function askAI(query) {
+    // You can replace with OpenAI API, Gemini API, Groq API etc.
+    return "I don't know the answer yet, but I will learn soon.";
+  }
+
+  // PROCESS USER SPEECH
+  recognition.onresult = async (event) => {
+    const query = event.results[0][0].transcript.toLowerCase();
+    output.textContent = "You said: " + query;
+
+    let response = "I didn't understand that.";
+
+    // GREETINGS
+    if (query.includes("hello") || query.includes("hi")) {
+      response = "Hello! I am My Buddy. How can I help you?";
+    }
+
+    // NAME
+    else if (query.includes("your name")) {
+      response = "My name is My Buddy, your personal voice assistant.";
+    }
+
+    // TIME
+    else if (query.includes("time")) {
+      response = "The time is " + new Date().toLocaleTimeString();
+    }
+
+    // DATE
+    else if (query.includes("date")) {
+      response = "Today's date is " + new Date().toLocaleDateString();
+    }
+
+    // YOUTUBE OPEN
+    else if (query.includes("open youtube")) {
+      response = "Opening YouTube.";
+      window.open("https://youtube.com", "_blank");
+    }
+
+    // SMART DEVICE CONTROL
+    else {
+      const smartResponse = controlSmartDevice(query);
+      if (smartResponse) {
+        response = smartResponse;
+      } else {
+        response = await askAI(query);
+      }
+    }
+
+    speak(response);
+  };
+
+  recognition.onerror = (event) => {
+    output.textContent = "Error: " + event.error;
+    speak("Sorry, I couldn't hear properly.");
+  };
+</script>
+
+</body>
+</html>
